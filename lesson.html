@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Odisha Shiksha - Student Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background-color: #0b1221; color: white; font-family: Arial, sans-serif; }
+    .top-bar { background: linear-gradient(90deg, #1f2937, #111827); border-bottom: 2px solid #10b981; }
+    .avatar { border: 3px solid #10b981; }
+    .lesson-card, .stats-card, .quiz-section { background: #1f2937; box-shadow: 0px 4px 6px rgba(0,0,0,0.2); }
+    .progress-bar { background: #374151; }
+    .progress-bar-inner { background: #10b981; transition: width 0.5s ease-in-out; }
+    .start-btn { background: #10b981; color: white; }
+    .start-btn:hover, .quiz-link:hover { background: #059669; }
+    .quiz-option-btn { background: #374151; color: white; }
+    .quiz-option-btn:hover { background: #10b981; }
+    .quiz-option-btn.selected { background: #10b981; font-weight: bold; }
+    .quiz-result.correct { color: #10b981; }
+    .quiz-result.wrong { color: #ef4444; }
+  </style>
+</head>
+<body class="p-0 sm:p-4">
+
+<div id="main-container" class="w-full max-w-4xl mx-auto rounded-xl overflow-hidden shadow-2xl flex flex-col min-h-screen">
+
+  <!-- Top Bar -->
+  <header class="top-bar p-4 flex flex-col sm:flex-row items-center justify-between">
+    <div class="profile flex items-center gap-4 mb-4 sm:mb-0">
+      <img src="https://i.pravatar.cc/80" alt="Profile" class="avatar w-14 h-14 rounded-full">
+      <div>
+        <h2 class="text-lg font-bold">ଶୁଭ ସନ୍ଧ୍ୟା · Good Evening</h2>
+        <p class="text-sm text-gray-400">Attend classes, complete lessons, earn coins, and climb the leaderboard!</p>
+      </div>
+    </div>
+    <div class="info flex items-center gap-4 text-sm font-semibold text-gray-300">
+      <span>🏫 Govt. High School, Cuttack</span>
+      <span id="coins-display">🪙 Coins: 240</span>
+      <span id="streak-display">🔥 Streak: 4 days</span>
+    </div>
+  </header>
+
+  <!-- Dashboard -->
+  <div id="dashboard-view" class="p-6">
+    <main class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- Lessons -->
+      <section class="lessons md:col-span-2">
+        <h3 class="text-xl font-bold mb-4">🎮 Lessons (ପାଠ)</h3>
+        <div id="lessons-list" class="space-y-4"></div>
+
+        <!-- Games -->
+        <h3 class="text-xl font-bold mb-4 mt-6">🕹️ Games & Simulations</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="dashboard-card p-4 rounded-xl flex flex-col items-center text-center">
+            <h4 class="text-lg font-semibold">Play a Science Game</h4>
+            <p class="text-sm text-gray-400">Test your knowledge with fun challenges.</p>
+            <!-- 2D Science Game: Simple Gravity Ball Game -->
+            <canvas id="gravityGame" width="260" height="180" class="mt-4 rounded-lg bg-gray-900 border-2 border-green-500"></canvas>
+            <button onclick="startGravityGame()" class="start-btn mt-4 py-2 px-6 rounded-lg font-semibold">Play Game</button>
+            <p id="game-msg" class="text-green-400 mt-2 text-sm"></p>
+          </div>
+          <div class="dashboard-card p-4 rounded-xl flex flex-col items-center text-center">
+            <h4 class="text-lg font-semibold">Run a Physics Simulation</h4>
+            <p class="text-sm text-gray-400">Visually explore concepts like gravity.</p>
+            <a href="javalab.html" class="start-btn mt-4 py-2 px-6 rounded-lg font-semibold block">Run Simulation</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- Stats + Leaderboard -->
+      <aside class="stats-sidebar md:col-span-1 flex flex-col gap-6">
+        <div class="stats-card p-4 rounded-xl">
+          <h3 class="text-lg font-bold mb-2">📊 Your Stats</h3>
+          <p class="text-sm text-gray-300"><b>Monthly Attendance:</b> <span id="attRate">86%</span></p>
+          <p class="text-sm text-gray-300"><b>Streak:</b> <span id="streakDays">4</span> days</p>
+          <p class="text-sm text-gray-300"><b>Coins:</b> <span id="coinCount">240</span></p>
+          <button onclick="showScreen('quiz-view')" class="quiz-link mt-4 w-full py-2 px-4 rounded-lg font-bold">📝 Go to Quiz</button>
+        </div>
+
+        <div class="stats-card p-4 rounded-xl">
+          <h3 class="text-lg font-bold mb-2">🏆 Leaderboard</h3>
+          <ul id="leaderboard-list" class="space-y-2 text-sm"></ul>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <!-- Lesson View -->
+  <div id="lesson-view" class="hidden p-6">
+    <header class="flex items-center justify-between mb-6">
+      <button onclick="showScreen('dashboard-view')" class="text-gray-400 hover:text-white">⬅ Back</button>
+      <h2 id="lesson-title" class="text-xl font-bold"></h2>
+      <div></div>
+    </header>
+    <section class="lesson-card p-6 rounded-xl">
+      <h3 class="text-lg font-semibold mb-4">📘 Theory</h3>
+      <p id="lesson-theory" class="text-gray-300 mb-6"></p>
+      <h3 class="text-lg font-semibold mb-4">🎥 Video</h3>
+      <div class="mb-6">
+        <iframe id="lesson-video" class="w-full h-64 rounded-lg" src="" frameborder="0" allowfullscreen></iframe>
+      </div>
+      <button id="completeLessonBtn" class="start-btn py-2 px-6 rounded-lg font-semibold">✅ Mark Complete & Earn Coins</button>
+    </section>
+  </div>
+
+  <!-- Quiz View -->
+  <div id="quiz-view" class="hidden p-6">
+    <header class="flex items-center justify-between mb-6">
+      <button onclick="showScreen('dashboard-view')" class="text-gray-400 hover:text-white">⬅ Back</button>
+      <h2 class="text-xl font-bold">📝 Quiz Time</h2>
+      <div></div>
+    </header>
+    <section class="quiz-section p-6 rounded-xl text-center">
+      <div id="student-quiz-section">
+        <h3 class="text-xl font-bold text-green-300 mb-4">📝 Quiz</h3>
+        <div id="quiz-area"></div>
+        <button id="submit-quiz-btn" class="mt-4 py-2 px-6 rounded-full font-bold text-white bg-gradient-to-r from-green-400 via-blue-500 to-indigo-500 shadow-lg hover:scale-105 transition-transform">
+          Submit Quiz
+        </button>
+        <p id="quiz-result-msg" class="mt-4 text-lg font-semibold"></p>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- Custom Modal -->
+<div id="custom-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+  <div class="bg-gray-800 p-6 rounded-xl shadow-lg w-full max-w-sm text-center">
+    <h3 id="modal-title" class="text-xl font-bold mb-2"></h3>
+    <p id="modal-message" class="text-gray-300 mb-4"></p>
+    <button onclick="hideModal()" class="py-2 px-6 rounded-lg font-semibold bg-green-600 hover:bg-green-700">OK</button>
+  </div>
+</div>
+
+<script>
+  // --- State ---
+  let state = { coins: 240, streak: 4, currentQuizQuestion: 0, quizUserAnswers: [] };
+  let currentLessonIndex = null;
+
+  // --- Data ---
+  function getLessonsData() {
+    const stored = localStorage.getItem("lessons");
+    if (stored) return JSON.parse(stored).map(l => ({
+      title: l.title,
+      progress: 0,
+      reward: 20,
+      theory: l.content,
+      video: l.video || ""
+    }));
+    return [
+      { title: "Maths - Fractions Basics", progress: 40, reward: 20,
+        theory: "Fractions represent a part of a whole. Example: 1/2 means one part out of two equal parts.",
+        video: "https://www.youtube.com/embed/ho7oagHeqNc" },
+      { title: "Science - Plant Life", progress: 65, reward: 25,
+        theory: "Plants make their own food using photosynthesis. They need sunlight, water, and carbon dioxide.",
+        video: "https://www.youtube.com/embed/dUBIQ1fTRzI" },
+      { title: "Engineering - Measurement", progress: 10, reward: 30,
+        theory: "Measurement is the process of finding the size, length, or amount of something using standard units.",
+        video: "https://www.youtube.com/embed/1n6cOQGgjks" },
+      { title: "Technology - Remote Sensing", progress: 80, reward: 18,
+        theory: "Remote sensing is the science of obtaining information about objects or areas from a distance, often using satellites.",
+        video: "https://www.youtube.com/embed/4QS8Yz3wz9Y" }
+    ];
+  }
+
+  function getQuizQuestions() {
+    return JSON.parse(localStorage.getItem("quizQuestions") || "[]");
+  }
+
+  let lessonsData = getLessonsData();
+
+  const leaderboardData = [
+    { name: "Sunita Sahoo", xp: 1200 },
+    { name: "Rajesh Behera", xp: 1150 },
+    { name: "Priya Das", xp: 980 },
+    { name: "Alok Mohanty", xp: 850 },
+    { name: "Mamata Jena", xp: 720 }
+  ];
+
+  // --- UI Functions ---
+  function showScreen(id) {
+    document.querySelectorAll('#main-container > div').forEach(div => div.classList.add('hidden'));
+    document.getElementById(id).classList.remove('hidden');
+  }
+  function updateUI() {
+    document.getElementById("coins-display").innerText = `🪙 Coins: ${state.coins}`;
+    document.getElementById("streak-display").innerText = `🔥 Streak: ${state.streak} days`;
+    document.getElementById("coinCount").innerText = state.coins;
+    document.getElementById("streakDays").innerText = state.streak;
+    renderLessons(); renderLeaderboard();
+  }
+  function showModal(title, message) {
+    document.getElementById('modal-title').innerText = title;
+    document.getElementById('modal-message').innerText = message;
+    document.getElementById('custom-modal').classList.remove('hidden');
+  }
+  function hideModal() { document.getElementById('custom-modal').classList.add('hidden'); }
+
+  // --- Lessons ---
+  function renderLessons() {
+    lessonsData = getLessonsData();
+    const lessonsList = document.getElementById('lessons-list');
+    lessonsList.innerHTML = '';
+    lessonsData.forEach((lesson, i) => {
+      const div = document.createElement('div');
+      div.className = "lesson-card p-4 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4";
+      div.innerHTML = `
+        <div class="flex-grow">
+          <h4 class="text-lg font-semibold">${lesson.title}</h4>
+          <div class="progress-bar h-2 rounded-full mt-1">
+            <div class="progress-bar-inner h-2 rounded-full" style="width:${lesson.progress || 0}%"></div>
+          </div>
+          <p class="text-sm text-gray-400 mt-1">${lesson.progress || 0}% complete</p>
+        </div>
+        <button onclick="openLesson(${i})" class="start-btn py-2 px-6 rounded-lg font-semibold">Start</button>
+      `;
+      lessonsList.appendChild(div);
+    });
+  }
+  function openLesson(i) {
+    lessonsData = getLessonsData();
+    currentLessonIndex = i;
+    const l = lessonsData[i];
+    document.getElementById("lesson-title").innerText = l.title;
+    document.getElementById("lesson-theory").innerText = l.theory;
+    document.getElementById("lesson-video").src = l.video || "";
+    const btn = document.getElementById("completeLessonBtn");
+    btn.disabled = false; btn.innerText = "✅ Mark Complete & Earn Coins";
+    showScreen('lesson-view');
+  }
+  document.getElementById("completeLessonBtn").addEventListener("click", () => {
+    if (currentLessonIndex!==null) {
+      const reward = lessonsData[currentLessonIndex].reward || 20;
+      state.coins += reward;
+      showModal("Lesson Completed!", `You earned +${reward} coins.`);
+      const btn = document.getElementById("completeLessonBtn");
+      btn.disabled = true; btn.innerText = "✔ Completed";
+      updateUI();
+    }
+  });
+
+  // --- Leaderboard ---
+  function renderLeaderboard() {
+    const list = document.getElementById('leaderboard-list'); list.innerHTML="";
+    const all = [...leaderboardData,{name:"You",xp:state.coins}].sort((a,b)=>b.xp-a.xp);
+    all.forEach((u,i)=>{
+      const li=document.createElement('li');
+      li.className="flex justify-between p-2 rounded-lg";
+      if(u.name==="You") li.classList.add("bg-blue-700","text-white","font-bold");
+      else li.classList.add("bg-gray-800");
+      li.innerHTML=`<span>#${i+1} ${u.name}</span><span>${u.xp} XP</span>`;
+      list.appendChild(li);
+    });
+  }
+
+  // --- Simple 2D Gravity Ball Game ---
+  let gravityGameRunning = false;
+  function startGravityGame() {
+    if (gravityGameRunning) return;
+    gravityGameRunning = true;
+    document.getElementById("game-msg").textContent = "Catch the ball with the paddle!";
+    const canvas = document.getElementById("gravityGame");
+    const ctx = canvas.getContext("2d");
+    let ball = { x: 130, y: 30, r: 12, vx: 2, vy: 1 };
+    let paddle = { x: 100, y: 160, w: 60, h: 10, speed: 5 };
+    let score = 0, gameOver = false;
+
+    function draw() {
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      // Ball
+      ctx.beginPath();
+      ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI*2);
+      ctx.fillStyle = "#10b981";
+      ctx.fill();
+      ctx.closePath();
+      // Paddle
+      ctx.fillStyle = "#3b82f6";
+      ctx.fillRect(paddle.x, paddle.y, paddle.w, paddle.h);
+      // Score
+      ctx.fillStyle = "#fff";
+      ctx.font = "bold 16px Arial";
+      ctx.fillText("Score: "+score, 10, 20);
+    }
+
+    function update() {
+      if (gameOver) return;
+      // Ball physics
+      ball.x += ball.vx;
+      ball.y += ball.vy;
+      ball.vy += 0.18; // gravity
+
+      // Wall bounce
+      if (ball.x - ball.r < 0 || ball.x + ball.r > canvas.width) ball.vx *= -1;
+      if (ball.y - ball.r < 0) ball.vy *= -1;
+
+      // Paddle collision
+      if (
+        ball.y + ball.r >= paddle.y &&
+        ball.x > paddle.x &&
+        ball.x < paddle.x + paddle.w
+      ) {
+        ball.vy = -Math.abs(ball.vy) * 1.05;
+        score++;
+        document.getElementById("game-msg").textContent = "Great! Score: " + score;
+      }
+
+      // Missed paddle
+      if (ball.y - ball.r > canvas.height) {
+        gameOver = true;
+        document.getElementById("game-msg").textContent = "Game Over! Final Score: " + score;
+        gravityGameRunning = false;
+        return;
+      }
+      draw();
+      requestAnimationFrame(update);
+    }
+
+    // Paddle movement
+    document.onkeydown = function(e) {
+      if (!gravityGameRunning) return;
+      if (e.key === "ArrowLeft" && paddle.x > 0) paddle.x -= paddle.speed;
+      if (e.key === "ArrowRight" && paddle.x + paddle.w < canvas.width) paddle.x += paddle.speed;
+    };
+
+    // Reset ball and paddle
+    ball = { x: 130, y: 30, r: 12, vx: 2, vy: 1 };
+    paddle = { x: 100, y: 160, w: 60, h: 10, speed: 18 };
+    score = 0; gameOver = false;
+    draw();
+    update();
+  }
+
+  // --- Student Quiz Section ---
+  function loadStudentQuiz() {
+    const quizArea = document.getElementById('quiz-area');
+    const quizQuestions = getQuizQuestions();
+    if (!quizQuestions.length) {
+      quizArea.innerHTML = '<p class="text-gray-300">No quiz available yet.</p>';
+      document.getElementById('submit-quiz-btn').style.display = "none";
+      return;
+    }
+    document.getElementById('submit-quiz-btn').style.display = "inline-block";
+    quizArea.innerHTML = quizQuestions.map((q, idx) => `
+      <div class="mb-6">
+        <p class="font-semibold text-white mb-2">Q${idx + 1}: ${q.question}</p>
+        <div>
+          ${q.options.map((opt, oidx) => `
+            <label class="block text-gray-200 cursor-pointer">
+              <input type="radio" name="quiz-q${idx}" value="${opt}" class="mr-2">
+              ${opt}
+            </label>
+          `).join("")}
+        </div>
+      </div>
+    `).join("");
+  }
+
+  document.getElementById('submit-quiz-btn').onclick = function() {
+    const quizQuestions = getQuizQuestions();
+    let score = 0;
+    quizQuestions.forEach((q, idx) => {
+      const selected = document.querySelector(`input[name="quiz-q${idx}"]:checked`);
+      if (selected && selected.value === q.answer) score++;
+    });
+    document.getElementById('quiz-result-msg').textContent = `You scored ${score} out of ${quizQuestions.length}!`;
+  };
+
+  // Init
+  document.addEventListener('DOMContentLoaded',()=>{
+    updateUI();
+    loadStudentQuiz();
+    showScreen('dashboard-view');
+  });
+</script>
+</body>
+</html>
