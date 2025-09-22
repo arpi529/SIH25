@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Login</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com/"/>
+  <link href="https://fonts.googleapis.com/css2?display=swap&family=Noto+Sans:wght@400;500;700;900&family=Spline+Sans:wght@400;500;700" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <style>
+    body {
+      min-height: max(884px, 100dvh);
+      font-family: "Spline Sans", "Noto Sans", sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-gray-900">
+  <div class="relative flex h-screen w-full flex-col bg-gradient-to-b from-[#111122] to-[#191933] text-white">
+    <div class="flex-1 flex flex-col items-center justify-center p-6">
+      <div class="w-full max-w-sm">
+        <div class="text-center mb-10">
+          <span class="material-symbols-outlined text-7xl text-indigo-700">
+            swords
+          </span>
+          <h1 class="text-3xl font-bold mt-4 tracking-tight">
+            Join the Adventure
+          </h1>
+          <p class="text-gray-400 mt-2">
+            Embark on a journey of discovery and rewards.
+          </p>
+        </div>
+        <!-- Profile Picture Upload -->
+        <div class="relative flex flex-col items-center mb-2">
+          <label for="profile-pic" class="cursor-pointer">
+            <img id="profile-preview" src="https://i.pravatar.cc/80" alt="Profile Picture" class="w-20 h-20 rounded-full border-4 border-indigo-700 object-cover mb-2 transition-all duration-200 hover:opacity-80"/>
+            <span class="block text-xs text-gray-400">Upload Profile Picture</span>
+          </label>
+          <input type="file" id="profile-pic" accept="image/*" class="hidden" onchange="previewProfilePic(event)">
+        </div>
+        <!-- Login Form -->
+        <div class="space-y-4">
+          <div class="relative">
+            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+              person
+            </span>
+            <input id="login-username" class="form-input w-full rounded-xl border-none bg-[#232348] py-4 pl-12 pr-4 text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-700" placeholder="Username" type="text"/>
+          </div>
+          <div class="relative">
+            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+              lock
+            </span>
+            <input id="login-password" class="form-input w-full rounded-xl border-none bg-[#232348] py-4 pl-12 pr-4 text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-700" placeholder="Password" type="password"/>
+          </div>
+        </div>
+        <!-- Colorful Login Buttons -->
+        <div class="flex flex-col gap-4 mt-8">
+          <button onclick="loginUser('student')" type="button" class="w-full rounded-full py-3 px-6 font-bold text-lg text-white bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 shadow-lg transition-transform hover:scale-105 hover:from-indigo-400 hover:to-cyan-500">
+            Student Login
+          </button>
+          <button onclick="loginUser('teacher')" type="button" class="w-full rounded-full py-3 px-6 font-bold text-lg text-white bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 shadow-lg transition-transform hover:scale-105 hover:from-yellow-400 hover:to-pink-500">
+            Teacher's Login
+          </button>
+          <p id="login-error" class="text-center text-red-400 font-semibold mt-2"></p>
+        </div>
+        <button onclick="window.location.href='register.html'" class="flex w-full cursor-pointer items-center justify-center rounded-xl bg-[#232348] px-5 py-4 text-base font-bold tracking-wide text-white transition-colors hover:bg-opacity-80 mt-6">
+          <span>Sign Up</span>
+        </button>
+        <p class="mt-6 cursor-pointer text-center text-sm text-gray-400 underline hover:text-white">
+          Forgot Password?
+        </p>
+      </div>
+    </div>
+    <div class="w-full border-t border-[#232348] bg-[#111122] px-4 pb-4 pt-3">
+      <div class="flex justify-around">
+        <a class="flex flex-col items-center justify-center gap-1 text-indigo-700" href="#">
+          <span class="material-symbols-outlined"> home </span>
+          <p class="text-xs font-medium">Home</p>
+        </a>
+        <a class="flex flex-col items-center justify-center gap-1 text-gray-400 hover:text-white" href="#">
+          <span class="material-symbols-outlined"> account_circle </span>
+          <p class="text-xs font-medium">Profile</p>
+        </a>
+        <a class="flex flex-col items-center justify-center gap-1 text-gray-400 hover:text-white" href="#">
+          <span class="material-symbols-outlined"> settings </span>
+          <p class="text-xs font-medium">Settings</p>
+        </a>
+      </div>
+    </div>
+  </div>
+  <script>
+    // Profile picture preview
+    function previewProfilePic(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        document.getElementById('profile-preview').src = e.target.result;
+        // Optionally, save to localStorage for use after login
+        localStorage.setItem('lastProfilePic', e.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // On page load, show last used profile pic if available
+    document.addEventListener('DOMContentLoaded', function() {
+      const lastPic = localStorage.getItem('lastProfilePic');
+      if (lastPic) {
+        document.getElementById('profile-preview').src = lastPic;
+      }
+    });
+
+    // Load registered users from localStorage or use default users
+    function getUsers() {
+      const stored = localStorage.getItem("users");
+      if (stored) return JSON.parse(stored);
+      // Default users for demo
+      return [
+        { username: "student1", password: "pass123", role: "student" },
+        { username: "teacher1", password: "teach123", role: "teacher" }
+      ];
+    }
+
+    function loginUser(role) {
+      const username = document.getElementById("login-username").value.trim();
+      const password = document.getElementById("login-password").value.trim();
+      const errorMsg = document.getElementById("login-error");
+
+      const users = getUsers();
+      const user = users.find(
+        u => u.username === username && u.password === password && u.role === role
+      );
+
+      if (user) {
+        errorMsg.textContent = "";
+        // Save current user for session
+        localStorage.setItem("currentUser", JSON.stringify(user));
+        // Save profile pic for this user (optional)
+        const profilePic = document.getElementById('profile-preview').src;
+        user.profilePic = profilePic;
+        // Update user in localStorage
+        const idx = users.findIndex(u => u.username === username && u.role === role);
+        if (idx !== -1) {
+          users[idx].profilePic = profilePic;
+          localStorage.setItem("users", JSON.stringify(users));
+        }
+        if (role === "student") {
+          window.location.href = "lesson.html";
+        } else {
+          window.location.href = "teacher.html";
+        }
+      } else {
+        errorMsg.textContent = "Invalid username or password.";
+      }
+    }
+  </script>
+</body>
+</html>
