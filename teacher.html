@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Odisha Shiksha - Teacher Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #0b1221;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        .top-bar {
+            background: linear-gradient(90deg, #1f2937, #111827);
+            border-bottom: 2px solid #10b981;
+        }
+        .avatar {
+            border: 3px solid #10b981;
+        }
+        .dashboard-card {
+            background: #1f2937;
+            box-shadow: 0px 4px 6px rgba(0,0,0,0.2);
+        }
+        .attendance-btn {
+            background-color: #10b981;
+        }
+        .attendance-btn.absent {
+            background-color: #ef4444;
+        }
+        .attendance-btn:hover {
+            opacity: 0.8;
+        }
+        .lesson-card {
+            background: #232b41;
+        }
+        .quiz-form-card {
+            background: #232b41;
+        }
+    </style>
+</head>
+<body class="p-0 sm:p-4">
+
+    <!-- Main Container -->
+    <div id="main-container" class="w-full max-w-4xl mx-auto rounded-xl overflow-hidden shadow-2xl flex flex-col min-h-screen">
+        
+        <!-- Top Bar (Header) -->
+        <header class="top-bar p-4 flex flex-col sm:flex-row items-center justify-between">
+            <div class="profile flex items-center gap-4 mb-4 sm:mb-0">
+                <img src="https://i.pravatar.cc/80?img=12" alt="Teacher Avatar" class="avatar w-14 h-14 rounded-full">
+                <div>
+                    <h2 class="text-xl font-bold">Welcome, Teacher</h2>
+                    <p class="text-green-400 text-sm">Odisha Shiksha</p>
+                </div>
+            </div>
+            <div class="info flex items-center gap-4 text-sm font-semibold text-gray-300">
+                <span>Session: 2025</span>
+                <span>|</span>
+                <a href="login.html" class="text-green-400 hover:underline">Logout</a>
+            </div>
+        </header>
+
+        <!-- Teacher Dashboard View -->
+        <div id="teacher-dashboard-view" class="p-6">
+            <h3 class="text-xl font-bold mb-4">Student List</h3>
+            <div id="student-list" class="space-y-4"></div>
+
+            <!-- Add Quiz Question Section -->
+            <div class="mt-10">
+                <h3 class="text-lg font-bold mb-2 text-green-400">Add Quiz Question</h3>
+                <form id="quiz-form" class="quiz-form-card rounded-xl p-6 mb-6">
+                    <div class="mb-4">
+                        <label class="block mb-1 text-white" for="quiz-question">Question</label>
+                        <input id="quiz-question" type="text" class="w-full px-4 py-2 rounded-lg bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-green-400" placeholder="Enter question" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block mb-1 text-white" for="quiz-options">Options (comma separated)</label>
+                        <input id="quiz-options" type="text" class="w-full px-4 py-2 rounded-lg bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-green-400" placeholder="Option1, Option2, Option3, ..." required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block mb-1 text-white" for="quiz-answer">Correct Answer</label>
+                        <input id="quiz-answer" type="text" class="w-full px-4 py-2 rounded-lg bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-green-400" placeholder="Correct answer" required>
+                    </div>
+                    <button type="submit" class="w-full py-2 rounded-full font-bold text-lg text-white bg-gradient-to-r from-green-400 via-blue-500 to-indigo-500 shadow-lg transition-transform hover:scale-105 hover:from-indigo-400 hover:to-green-500">
+                        Add Question
+                    </button>
+                    <p id="quiz-msg" class="text-center mt-4 font-semibold"></p>
+                </form>
+                <div id="quiz-questions-list" class="space-y-4"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load students from localStorage (registered users with role "student")
+        function getStudents() {
+            const users = JSON.parse(localStorage.getItem("users") || "[]");
+            return users
+                .filter(u => u.role === "student")
+                .map((u, i) => ({
+                    username: u.username,
+                    email: u.email,
+                    coins: u.coins || 0,
+                    streak: u.streak || 0,
+                    attendance: u.attendance || false,
+                    profilePic: u.profilePic || `https://i.pravatar.cc/80?u=${u.username}`,
+                    id: i + 1
+                }));
+        }
+
+        // Render student cards
+        function renderStudents() {
+            const students = getStudents();
+            const studentList = document.getElementById('student-list');
+            studentList.innerHTML = '';
+            if (students.length === 0) {
+                studentList.innerHTML = '<p class="text-gray-300">No students registered yet.</p>';
+                return;
+            }
+            students.forEach(student => {
+                const studentCard = document.createElement('div');
+                studentCard.classList.add('dashboard-card', 'p-4', 'rounded-xl', 'flex', 'flex-col', 'sm:flex-row', 'items-start', 'sm:items-center', 'justify-between', 'gap-4');
+                
+                const attendanceStatus = student.attendance ? 'Present' : 'Absent';
+                const attendanceColor = student.attendance ? 'bg-green-600' : 'bg-red-600';
+
+                studentCard.innerHTML = `
+                    <div class="flex items-center gap-4 flex-grow">
+                        <img src="${student.profilePic}" alt="${student.username} avatar" class="w-12 h-12 rounded-full border-2 border-green-500">
+                        <div>
+                            <h4 class="text-lg font-semibold">${student.username}</h4>
+                            <p class="text-sm text-gray-400">Email: ${student.email}</p>
+                            <p class="text-sm text-gray-400">Coins: ${student.coins} | Streak: ${student.streak} days</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 mt-2 sm:mt-0">
+                        <span class="text-sm font-semibold py-2 px-3 rounded-lg ${attendanceColor}">${attendanceStatus}</span>
+                        <button onclick="toggleAttendance('${student.username}')" class="attendance-btn py-2 px-3 rounded-lg font-semibold transition-colors duration-200">
+                            Mark ${student.attendance ? 'Absent' : 'Present'}
+                        </button>
+                    </div>
+                `;
+                studentList.appendChild(studentCard);
+            });
+        }
+
+        // Toggle attendance and update localStorage
+        function toggleAttendance(username) {
+            const users = JSON.parse(localStorage.getItem("users") || "[]");
+            const user = users.find(u => u.username === username && u.role === "student");
+            if (user) {
+                user.attendance = !user.attendance;
+                localStorage.setItem("users", JSON.stringify(users));
+                renderStudents();
+            }
+        }
+
+        // Quiz Section Logic
+        function getQuizQuestions() {
+            return JSON.parse(localStorage.getItem("quizQuestions") || "[]");
+        }
+
+        function renderQuizQuestions() {
+            const questions = getQuizQuestions();
+            const list = document.getElementById('quiz-questions-list');
+            list.innerHTML = '';
+            if (questions.length === 0) {
+                list.innerHTML = '<p class="text-gray-300">No quiz questions added yet.</p>';
+                return;
+            }
+            questions.forEach((q, idx) => {
+                const div = document.createElement('div');
+                div.className = "lesson-card p-4 rounded-xl";
+                div.innerHTML = `
+                    <h4 class="text-lg font-bold text-green-300">Q${idx + 1}: ${q.question}</h4>
+                    <p class="text-white mb-1"><b>Options:</b> ${q.options.join(", ")}</p>
+                    <p class="text-green-400 text-sm"><b>Answer:</b> ${q.answer}</p>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        document.getElementById("quiz-form").addEventListener("submit", function(e) {
+            e.preventDefault();
+            const msg = document.getElementById("quiz-msg");
+            const question = document.getElementById("quiz-question").value.trim();
+            const options = document.getElementById("quiz-options").value.trim().split(",").map(o => o.trim());
+            const answer = document.getElementById("quiz-answer").value.trim();
+            if (!question || options.length < 2 || !answer) {
+                msg.textContent = "Please fill all fields and provide at least 2 options.";
+                msg.className = "text-center mt-4 font-semibold text-red-400";
+                return;
+            }
+            let quizQuestions = getQuizQuestions();
+            quizQuestions.push({ question, options, answer });
+            localStorage.setItem("quizQuestions", JSON.stringify(quizQuestions));
+            msg.textContent = "Question added!";
+            msg.className = "text-center mt-4 font-semibold text-green-400";
+            this.reset();
+            renderQuizQuestions();
+        });
+
+        // On load
+        document.addEventListener('DOMContentLoaded', () => {
+            renderStudents();
+            renderQuizQuestions();
+        });
+    </script>
+</body>
+</html>
